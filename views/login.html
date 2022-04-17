@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/assets/layui/css/layui.css">
+    <link rel="stylesheet" href="/assets/css/login.css">
+</head>
+<style>
+    #hode{
+        display: none;
+        color: red;
+    }
+    /* #toke{
+        background-color: bisque;
+    } */
+</style>
+<body>
+    <div id="iframe-wrap">
+        <iframe id="iframe" src="https://www.jq22.com/demo/jQuery-xh-141222220140" frameborder="0" width="100%" height="1200px"></iframe>
+    </div>
+    <div class="login">
+        <h1>这是一个很哇塞的系统</h1>
+        <form method="post"  id="toke">
+            <div id="hode"></div>
+            <input type="text" id="usernames" name="username" placeholder="用户名" />
+            <input type="password" id="passwords" name="password" placeholder="用户密码"  />
+            <button type="submit" id="loginBtn" class="btn btn-primary btn-block btn-large">登录</button>
+        </form>
+    </div>
+</body>
+<script src="/assets/js/jquery.min.js"></script>
+<script src="/assets/layui/layui.js"></script>
+<script>
+
+var username = document.getElementById('usernames')
+    var password = document.getElementById('passwords')
+    var hode = document.getElementById('hode')
+
+$("#loginBtn").on('click',()=>{
+    if(username.value === '' || password.value === ''){
+               hode.style.display = 'block'
+               hode.innerHTML = '请输入用户名和密码'
+//    alert('请输入账号密码')
+   return false;
+}
+        // 获取表单项数据
+        const data = $("#toke").serialize()
+        console.log(data)
+        $.post('/takeabout',data).then(res=>{
+            const {code,message} = res;
+            if(code === 0){
+                hode.innerHTML = ''
+                  location.href = '/'
+            }else{
+             layer.msg(message)
+             hode.innerHTML = ''
+                console.log(username.value);
+                console.log(password.value); 
+            }
+        })
+        
+        
+        return false;  // async Promise.resove(false)
+    })
+</script>
+</html>

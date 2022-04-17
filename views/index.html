@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>德德后台管理系统</title>
+  <link rel="stylesheet" href="/assets/layui/css/layui.css">
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+   <!-- 导入公共页面 -->
+   {{ include "./common/header.html" }}
+
+    <!-- 导入公共页面 -->
+  {{ include "./common/side.html" }}
+  
+ 
+  
+  <div class="layui-body">
+    <!-- 内容主体区域 -->
+    <!-- <div style="padding: 15px;">首页区域. {{ age }}</div> -->
+    <div style="padding: 15px;">
+      <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+      <div id="main" style="width: 800px;height:400px;"></div>
+
+      <div id="mains" style="width: 1000px;height:600px;"></div>
+    </div>
+  </div>
+  </div>
+  
+  <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    底部固定区域
+  </div>
+</div>
+<script src="/assets/layui/layui.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+<script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+<script>
+
+  
+  // 获取cookie设置到header页面中，显示用户的信息
+  // let {username,admin,intro} = JSON.parse(Cookies.get('userInfo'))
+
+//JS 
+layui.use(['element', 'layer', 'util'], async function(){
+  var element = layui.element
+  ,layer = layui.layer
+  ,util = layui.util
+  ,$ = layui.$;
+  $("#username").text(admin)
+  // $("#logoText").text(admin)
+  const result = await $.get('/systemData')
+
+  let logoText = ''
+  result.find(item => {
+    if(item.name === 'logoText'){
+      logoText = item.val;
+      return true
+    }
+  })
+  // $("#logoText").text(admin)
+  // 存储到本地存储或cookie，供其他页面使用
+  localStorage.setItem('logoText',logoText)
+
+});
+
+ // 查看个人信息
+ $("#showUserInfo").on('click', () => {
+      // 获取cookie中的用户信息
+      const {
+        id,
+        username,
+        pic,
+        intro
+      } = JSON.parse(Cookies.get('userInfo'))
+
+      // 弹窗模板
+      let userTemplate = `
+        <div>
+          <div class="layui-form-item">
+            <label class="layui-form-label">用户名</label>
+            <div class="layui-input-block">
+              <input type="text" name="username" disabled value='${username}' lay-verify="title" autocomplete="off"  class="layui-input">
+            </div>
+          </div>
+          <div class="layui-form-item">
+            <label class="layui-form-label">选择你的头像</label>
+            <div class="layui-input-block">
+              <div class="layui-upload">
+                <button type="button" class="layui-btn" id="test1">上传头像</button>
+                <div class="layui-upload-list">
+                  <img class="layui-upload-img" style="width:80px" id="demo1">
+                  <p id="demoText"></p>
+                </div>
+                <div style="width: 95px;">
+                  <div class="layui-progress layui-progress-big" lay-showpercent="yes" lay-filter="demo">
+                    <div class="layui-progress-bar" lay-percent=""></div>
+                  </div>
+                </div>
+              </div> 
+            </div>
+          </div>
+          <div class="layui-form-item">
+            <label class="layui-form-label">个人介绍</label>
+            <div class="layui-input-inline">
+              <textarea name="intro"   class="layui-textarea" id="" cols="30" rows="6">${intro}</textarea>
+            </div>
+          </div>
+          <div style="text-align:center;">
+            <button type="button" id="saveUser" class="layui-btn layui-btn-primary layui-border-orange">确认修改</button>
+            
+          </div>
+        </div>
+      `;
+      //页面层
+      layer.open({
+        title: "修改个人信息",
+        type: 1,
+        skin: 'layui-layer-rim', //加上边框
+        area: ['420px', '540px'], //宽高
+        content: userTemplate,
+        success: function (layero, index) {
+         
+          initUpload();
+          
+          let {
+            pic
+          } = JSON.parse(Cookies.get('userInfo'));
+          $("#demo1").attr('src', pic)
+        }
+      });
+    })
+
+  
+    function initUpload() {
+      //常规使用 - 普通图片上传
+      const upload = layui.upload;
+      const element = layui.element;
+      var uploadInst = upload.render({
+        elem: '#test1',
+        url: '/filedata' //此处用的是第三方的 http 请求演示，实际使用时改成您自己的上传接口即可。
+          ,
+        before: function (obj) {
+          //预读本地文件示例，不支持ie8
+          obj.preview(function (index, file, result) {
+            $('#demo1').attr('src', result); //图片链接（base64）
+          });
+
+          element.progress('demo', '0%'); //进度条复位
+          layer.msg('上传中', {
+            icon: 16,
+            time: 0
+          });
+        },
+        done: function (res) {
+          //如果上传失败
+          if (res.code === 0) {
+            let {
+              pic
+            } = JSON.parse(Cookies.get('userInfo'));
+            console.log({pic},"pic");
+            // 回显图片
+            $('#avatar').attr('src', pic)
+            return layer.msg('上传成功');
+
+          } else {
+            return layer.msg('上传失败');
+          }
+          //上传成功的一些操作
+          $('#demoText').html(''); //置空上传失败的状态
+        },
+        error: function () {
+            //演示失败状态，并实现重传
+            var demoText = $('#demoText');
+            demoText.html(
+              '<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+            demoText.find('.demo-reload').on('click', function () {
+              uploadInst.upload();
+            });
+          }
+          //进度条
+          ,
+        progress: function (n, elem, e) {
+          element.progress('demo', n + '%'); //可配合 layui 进度条元素使用
+          if (n == 100) {
+            layer.msg('上传完毕', {
+              icon: 1
+            });
+          }
+        }
+      });
+    }
+    // 保存用户信息
+    $(document).on('click', "#saveUser", async () => {
+      const {
+        id
+      } = JSON.parse(Cookies.get('userInfo'))
+      const intro = $("textarea[name='intro']").val()
+      const {
+        code,
+        message
+      } = await $.post('/speaker', {
+        id,
+        intro
+      })
+      if (code === 0) {
+        layer.msg(message, {
+         
+          icon: 1
+        })
+      } else {
+        layer.msg(message, {
+          icon: 2
+        })
+      }
+
+    })
+
+      // 加载图表
+      function loadGraphy(cates,totals) {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('main'));
+
+    var option = {
+  title: {
+    text: '国家展示'
+  },
+  tooltip: {
+    trigger: 'item',
+    formatter: '{a} <br/>{b} : {c}%'
+  },
+  toolbox: {
+    feature: {
+      dataView: { readOnly: false },
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+  legend: {
+    data: ['法兰西', '苏联', '英国', '美国', '德国']
+  },
+  series: [
+    {
+      name: 'Funnel',
+      type: 'funnel',
+      left: '10%',
+      top: 60,
+      bottom: 60,
+      width: '80%',
+      min: 0,
+      max: 100,
+      minSize: '0%',
+      maxSize: '100%',
+      sort: 'descending',
+      gap: 2,
+      label: {
+        show: true,
+        position: 'inside'
+      },
+      labelLine: {
+        length: 10,
+        lineStyle: {
+          width: 1,
+          type: 'solid'
+        }
+      },
+      itemStyle: {
+        borderColor: '#fff',
+        borderWidth: 1
+      },
+      emphasis: {
+        label: {
+          fontSize: 20
+        }
+      },
+      data: [
+        { value: 60, name: '英国' },
+        { value: 40, name: '苏联' },
+        { value: 20, name: '德国' },
+        { value: 80, name: '法兰西' },
+        { value: 100, name: '英国' }
+      ]
+    }
+  ]
+};
+      // 指定图表的配置项和数据
+      // var option = {
+      //   title: {
+      //     text: '历史君主分类图'
+      //   },
+      //   tooltip: {},
+      //   legend: {
+      //     data: ['国别']
+      //   },
+      //   xAxis: {
+      //     data: cates
+      //   },
+      //   yAxis: {},
+      //   series: [{
+      //     name: '国别',
+      //     type: 'bar',
+      //     data: totals
+      //   }]
+      // };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+    }
+
+    $.get('/cateCount').then(res=>{
+      console.log(res)
+      // 组装两个一维数组
+      let cates = [];
+      let totals = [];
+      res.forEach(item => {
+        cates.push(item.text)
+        totals.push(item.total)
+      })
+      loadGraphy(cates,totals);
+    })
+      
+
+          // 加载图表
+          function loadGraphys(cates,totals) {
+      // 基于准备好的dom，初始化echarts实例
+      var myCharts = echarts.init(document.getElementById('mains'));
+
+    var option = {
+      title: {
+    text: '文章分类展示'
+  },
+  legend: {
+    top: 'bottom'
+  },
+  toolbox: {
+    show: true,
+    feature: {
+      mark: { show: true },
+      dataView: { show: true, readOnly: false },
+      restore: { show: true },
+      saveAsImage: { show: true }
+    }
+  },
+  series: [
+    {
+      name: 'Nightingale Chart',
+      type: 'pie',
+      radius: [50, 250],
+      center: ['50%', '50%'],
+      roseType: 'area',
+      itemStyle: {
+        borderRadius: 8
+      },
+      data: [
+        { value: 70, name: '人物传记' },
+        { value: 55, name: '传记' },
+        { value: 20, name: '自传体回忆录' },
+        { value: 40, name: '传记小说' },
+        { value: 45, name: '传记文学' },
+        { value: 38, name: '自传体' },
+        { value: 42, name: '历史人物传记' }
+       
+      ]
+    }
+  ]
+};
+      myCharts.setOption(option);
+    }
+
+    $.get('/cateCounts').then(res=>{
+      console.log(res)
+      // 组装两个一维数组
+      let cates = [];
+      let totals = [];
+      res.forEach(item => {
+        cates.push(item.text)
+        totals.push(item.total)
+      })
+      loadGraphys(cates,totals);
+    })
+</script>
+</body>
+</html>

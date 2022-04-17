@@ -1,0 +1,83 @@
+<div class="layui-header">
+  <div>
+  <img id="jkheisi" src="" style="width: 30px;height: 30px; border-radius: 50%; margin-left: 200px; margin-top: 15px;"   alt="">
+  <div class="layui-logo layui-hide-xs layui-bg-black" id="logoText"></div>
+   </div>
+  <ul class="layui-nav layui-layout-right">
+    <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+      <a href="javascript:;">
+        <img id="avatar" src=""  class="layui-nav-img">
+        <span id="username">请登录</span>
+      </a>
+      <dl class="layui-nav-child">
+        <dd><a href="javascript:;" id="showUserInfo">个人信息</a></dd>
+        <dd><a href="/formfile">修改密码</a></dd>
+        <dd><a href="javascript:;" id="logout">退出</a></dd>
+      </dl>
+    </li>
+    <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+      <a href="javascript:;">
+        <i class="layui-icon layui-icon-more-vertical"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+<script src="/assets/layui/layui.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
+<script>
+// let logoText = localStorage.getItem('logoText')
+// $("#logoText").text(logoText)
+// // 退出
+$("#logout").on('click',async (event)=>{
+  const {message,code} = await $.post('/userLogout')
+  if(code === 0){
+    location.href = '/login'
+  }else {
+    alert('退出失败')
+  }
+})
+
+
+let {
+      admin,
+      pic
+    } = JSON.parse(Cookies.get('userInfo'));
+    // 回显图片
+    $('#avatar').attr('src',pic)
+    // $("#logoText").text(admin)
+    $("#username").text(admin)
+   
+    
+    layui.use(['element', 'layer', 'util'], async function(){
+  var element = layui.element
+  ,layer = layui.layer
+  ,util = layui.util
+  ,$ = layui.$;
+//  console.log(data);
+  const result = await $.get('/writespeak')
+ 
+  let logoText = ''
+  result.find(item => {
+    var {username,picesc} = item
+    console.log(username,picesc);
+    // $("#logoText").text(item.username)
+    if(item.username === 'logoText'){
+      logoText = item.val;
+      return true
+    } 
+    $("#logoText").text(username)
+    $("#jkheisi").attr('src',picesc)
+  })
+  // let {picesc} = 
+ 
+ 
+  // 存储到本地存储或cookie，供其他页面使用
+  // localStorage.setItem('logoText',logoText)
+
+});
+
+
+   
+</script>
+</script>

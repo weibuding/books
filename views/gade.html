@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>德德后台管理系统</title>
+    <link rel="stylesheet" href="/assets/layui/css/layui.css">
+</head>
+
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <!-- 导入公共页面 -->
+        {{ include "./common/header.html" }}
+
+        <!-- 导入公共页面 -->
+        {{ include "./common/side.html" }}
+
+
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                系统更改
+
+                <form class="layui-form" action="">
+
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">名字</label>
+                            <div class="layui-input-inline">
+                                <input type="tel" name="name" id="jh" lay-verify="required" autocomplete="off"
+                                    class="layui-input" placeholder="请输入名称">
+                            </div>
+                        </div>
+
+                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                            <legend>常规使用：普通图片上传</legend>
+                        </fieldset>
+
+                        <div class="layui-upload">
+                            <button type="button" class="layui-btn" id="test1">上传图片</button>
+                            <div class="layui-upload-list">
+                                <img class="layui-upload-img" id="demo1">
+                                <p id="demoText"></p>
+                            </div>
+                            <div style="width: 95px;">
+                                <div class="layui-progress layui-progress-big" lay-showpercent="yes" lay-filter="demo">
+                                    <div class="layui-progress-bar" lay-percent=""></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button type="submit" class="layui-btn" lay-submit="" id="dede"
+                                    lay-filter="demo1">立即提交</button>
+                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            </div>
+                        </div>
+                </form>
+
+
+            </div>
+        </div>
+
+        <div class="layui-footer">
+            <!-- 底部固定区域 -->
+            底部固定区域
+        </div>
+    </div>
+    <!-- toot -->
+
+
+
+
+    <script src="/assets/layui/layui.js"></script>
+    <script>
+
+
+// console.log(layui);
+        layui.use(['form', 'layedit', 'laydate'], function () {
+            var form = layui.form
+                , layer = layui.layer
+                , layedit = layui.layedit
+                , laydate = layui.laydate
+                , $ = layui.jquery;
+
+            //创建一个编辑器
+            var editIndex = layedit.build('LAY_demo_editor');
+         
+            form.on('submit(demo1)', function (data) {
+
+                let { field } = data;
+                console.log({ field });
+                var heisi = $('#jh').val()
+                layer.alert(JSON.stringify(data.field), {
+                    title: '最终的提交信息'
+                });
+               $("#logoText").text(heisi)
+                $.ajax({
+                    url: "/updatawrite",
+                    type: 'post',
+                    data: {heisi},
+                }).then(res => {
+                    
+                     console.log(field,'field');
+                    console.log(res);
+                    // location.href = '/catelist'
+                })
+
+                return false;
+            });
+        });
+
+        // layui.use('form', function(){
+        //   var form = layui.form;
+
+        //   //监听提交
+        //   form.on('submit(demo1)', function(data){
+        //     layer.msg(JSON.stringify(data.field));
+        //     return false;
+        //   });
+        // });
+
+
+        layui.use(['upload', 'element', 'layer'], function () {
+            var $ = layui.jquery
+                , upload = layui.upload
+                , element = layui.element
+                , layer = layui.layer;
+           
+            //  })
+
+            //常规使用 - 普通图片上传
+            var uploadInst = upload.render({
+                elem: '#test1'
+                , url: '/writefile' //此处用的是第三方的 http 请求演示，实际使用时改成您自己的上传接口即可。
+                , before: function (obj) {
+                    //预读本地文件示例，不支持ie8
+                    
+                    obj.preview(function (index, file, result) {
+                        $('#demo1').attr('src', result); //图片链接（base64）
+                        $("#jkheisi").attr('src',result)
+                        console.log(result);
+                    });
+
+                    element.progress('demo', '0%'); //进度条复位
+                    layer.msg('上传中', { icon: 16, time: 0 });
+                }
+                , done: function (res) {
+                    //如果上传失败
+                    if (res.code > 0) {
+                        return layer.msg('上传失败');
+                    }
+                    //上传成功的一些操作
+                    //……
+                    $('#demoText').html(''); //置空上传失败的状态
+                }
+                , error: function () {
+                    //演示失败状态，并实现重传
+                    var demoText = $('#demoText');
+                    demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+                    demoText.find('.demo-reload').on('click', function () {
+                        uploadInst.upload();
+                    });
+                }
+                //进度条
+                , progress: function (n, elem, e) {
+                    element.progress('demo', n + '%'); //可配合 layui 进度条元素使用
+                    if (n == 100) {
+                        layer.msg('上传完毕', { icon: 1 });
+                    }
+                }
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //创建一个编辑器
+            // var editIndex = layedit.build('LAY_demo_editor');
+            //自定义验证规则
+            // form.verify({
+
+            //     //    /^[\w]$/
+            //     required: [
+            //         /^[a-zA-z]+[\w]{2,16}$/g
+            //         , '名字只能以英文_命名'
+            //     ]
+            //     , val: function (value) {
+            //         if (value.length < 1) {
+            //             return '值至少得1个字符';
+            //         }
+            //     }
+            // });
+
+            //     console.log($('#wasai'));
+            // let wasai = document.getElementById('wasai')
+            //   let jh = document.getElementById('jh')
+            //   let dede = document.getElementById('dede')
+            //   let hode = jh.value
+
+            //   dede.click = function(){
+            //     wasai.innerHTML = hode
+            //     console.log(hode);
+            //   }
+            //         $(function(){
+            //   $('#wasai').html(localStorage.getItem('name'))
+            //   $('#dede').click(function(){
+
+
+            //   })
+            // })
+            //监听提交
+            // form.on('submit(demo1)', function (data) {
+
+            //     let { field } = data;
+            //     console.log(data);
+            //     layer.alert(JSON.stringify(data.field), {
+
+            //         title: '最终的提交信息'
+            //     });
+            //  $('#wasai').html = data
+            // $.ajax({
+            //     url: "/adddata",
+            //     type: 'post',
+            //     data: field,
+            // }).then(res => {
+            //      console.log(field,'field');
+            //     console.log(res);
+            //     location.href = '/catelist'
+            // })
+
+            //     return false;
+            // });
+
+            //表单赋值
+
+
+
+        });
+    </script>
+</body>
+
+</html>
